@@ -2,6 +2,7 @@ package comcsvfilehandling.service;
 
 import comcsvfilehandling.model.Movies;
 import comcsvfilehandling.movieshelper.MoviesCsvHelper;
+import comcsvfilehandling.movieshelper.MoviesxlsHelper;
 import comcsvfilehandling.repository.MoviesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,14 +17,16 @@ public class MovieService {
     @Autowired
     MoviesRepository repository;
 
-    public void save(MultipartFile file) {
+    public void saveCsv(MultipartFile file) {
         try {
+
             List<Movies> tutorials = MoviesCsvHelper.csvToMovies(file.getInputStream());
             repository.saveAll(tutorials);
         } catch (IOException e) {
             throw new RuntimeException("fail to store csv data: " + e.getMessage());
         }
     }
+
 
     public ByteArrayInputStream load() {
         List<Movies> movies = repository.findAll();
@@ -34,6 +37,17 @@ public class MovieService {
 
     public List<Movies> getAllMovies() {
         return repository.findAll();
+    }
+
+    public void saveExcel(MultipartFile file) {
+
+            try {
+                List<Movies> movies = MoviesxlsHelper.excelToMovies(file.getInputStream());
+                repository.saveAll(movies);
+            } catch (IOException e) {
+                throw new RuntimeException("fail to store excel data: " + e.getMessage());
+            }
+
     }
 }
 
