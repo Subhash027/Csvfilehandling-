@@ -2,13 +2,21 @@ package comcsvfilehandling.movieshelper;
 
 import comcsvfilehandling.model.Movies;
 import org.apache.commons.csv.*;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
+
+import static comcsvfilehandling.movieshelper.MoviesxlsHelper.SHEET;
 
 public class MoviesCsvHelper {
 
@@ -18,12 +26,13 @@ public class MoviesCsvHelper {
     public static boolean formatCheck(MultipartFile file) {
         Logger logger = Logger.getLogger(MoviesCsvHelper.class.getName());
         logger.info("checking formate");
-        if (FileFORMAT.equals(file.getContentType())||file.getContentType().equals("application/vnd.ms-excel")) {
+        if (file.getContentType().equals("application/vnd.ms-excel")) {
             return true;
         }
 
         return false;
     }
+
 
     public static List<Movies> csvToMovies(InputStream inputStream) {
         Logger logger = Logger.getLogger(MoviesCsvHelper.class.getName());
@@ -60,6 +69,10 @@ public class MoviesCsvHelper {
             throw new RuntimeException("fail to import data to csv file:" + e.getMessage());
         }
     }
+
+
+
+
 }
 
 
