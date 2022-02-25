@@ -26,7 +26,7 @@ public class MoviesCsvHelper {
     public static boolean formatCheck(MultipartFile file) {
         Logger logger = Logger.getLogger(MoviesCsvHelper.class.getName());
         logger.info("checking formate");
-        if (file.getContentType().equals("application/vnd.ms-excel")) {
+        if (FileFORMAT.equals(file.getContentType())) {
             return true;
         }
 
