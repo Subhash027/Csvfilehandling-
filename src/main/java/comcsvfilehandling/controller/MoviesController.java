@@ -1,6 +1,7 @@
 package comcsvfilehandling.controller;
 
 import com.google.common.io.Files;
+import comcsvfilehandling.model.Movies;
 import comcsvfilehandling.movieshelper.MoviesCsvHelper;
 import comcsvfilehandling.movieshelper.MoviesxlsHelper;
 import comcsvfilehandling.response.ResponseMessage;
@@ -8,11 +9,17 @@ import comcsvfilehandling.service.MovieService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import comcsvfilehandling.stringconstant.StringConstant.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static comcsvfilehandling.stringconstant.StringConstant.*;
 import static org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentContextPath;
@@ -74,19 +81,81 @@ public class MoviesController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseMessage(message,fileUri));
 
     }
-//    @GetMapping("/movies")
-//    public ResponseEntity<List<Movies>> getALLMovies(){
+    @GetMapping("/movies")
+    public ResponseEntity<List<Movies>> getALLMovies(){
+        try {
+            List<Movies> moviesList = movieService.getAllMovies();
+            if (moviesList.isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+            return new ResponseEntity<>(moviesList, HttpStatus.OK);
+        }catch (Exception e)
+        {
+            return new ResponseEntity<>(null,HttpStatus.NOT_ACCEPTABLE);
+        }
+    }
+    @GetMapping("movies/year/{year}")
+    public List<Movies> getByyear(@PathVariable(value = "year")Integer year)
+    {
+
+        try {
+            logger.info("movies release year" + year);
+            List<Movies> moviesYear = movieService.getAllMovies();
+            List<Movies> getByYear=new ArrayList<>();
+             if (moviesYear.stream().anyMatch(years->years.getYear()>=year))
+            {
+                getByYear= moviesYear.stream()
+                        .filter(years -> years.getYear().equals(year))
+                        .collect(Collectors.toList());
+                logger.info("year of list "+year+""+getByYear);
+                return getByYear;
+            }
+            return (List<Movies>) new ResponseEntity<Movies>(HttpStatus.OK);
+
+        } catch (Exception e) {
+            logger.error("file not found");
+            throw new RuntimeException("fail to get year"+e.getMessage());
+        }
+    }
+    @GetMapping("actor/{startwith}")
+    public List<Movies> getByActor(@PathVariable(value = "startwith")String startwith)
+    {
+        try {
+            logger.info("sorted by actor name");
+            List<Movies> moviesList = movieService.getAllMovies();
+            List<Movies> actorByName = new ArrayList<>();
+            actorByName= moviesList.stream().filter(Name->Name.getActorName().toLowerCase().startsWith(startwith)).collect(Collectors.toList());
+            return actorByName;
+        }catch(Exception e)
+        {
+            throw new RuntimeException("getting some issue");
+        }
+    }
+    @GetMapping("downloadfile")
+    public ResponseEntity<InputStreamResource> getMovies()
+    {
+        InputStreamResource File=new InputStreamResource(movieService.loadExcel());
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + " ")
+                .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+                .body(File);
+    }
+//    @GetMapping("/rating")
+//    public ResponseEntity<List<Movies>> FileDownload()
+//    {
 //        try {
-//            List<Movies> moviesList = movieService.getAllMovies();
-//            if (moviesList.isEmpty()) {
-//                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-//            }
-//            return new ResponseEntity<>(moviesList, HttpStatus.OK);
+//            List<Movies> Movierate = movieService.getAllMovies();
+//            //List<Movies> filespec=Moviespec.stream().filter(Year->Year.getYear()>=rating).collect(Collectors.toList());
+//            List<Movies> ratingmovies = Movierate.stream()
+//            return new ResponseEntity<>(ratingmovies, HttpStatus.OK);
+//
 //        }catch (Exception e)
 //        {
-//            return new ResponseEntity<>(null,HttpStatus.NOT_ACCEPTABLE);
+//            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
 //        }
 //    }
+
+
 
 
 

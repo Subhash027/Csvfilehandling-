@@ -1,10 +1,14 @@
 package comcsvfilehandling.model;
 
+import lombok.Data;
+
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.util.Date;
 
 
+@Data
 @Entity
 @Table(name = "moviescollection")
 public class Movies {
@@ -13,48 +17,32 @@ public class Movies {
 
     private String titleName;
 
+    private String Director;
+
     private String actorName;
 
-    public Long getId() {
-        return id;
-    }
+    private Integer year;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    private String Description;
 
-    public String getTitleName() {
-        return titleName;
-    }
+    private Double Rating;
 
-    public void setTitleName(String titleName) {
-        this.titleName = titleName;
-    }
+    private String Genre;
 
-    public String getActorName() {
-        return actorName;
-    }
-
-    public void setActorName(String actorName) {
-        this.actorName = actorName;
-    }
-
-    public Movies(Long id, String titleName, String actorName) {
+    public Movies(Long id, String titleName, String director, String actorName, Integer year, String description, Double rating, String genre) {
         this.id = id;
         this.titleName = titleName;
+        Director = director;
         this.actorName = actorName;
-    }
-
-    @Override
-    public String toString() {
-        return "Movies{" +
-                "id=" + id +
-                ", titleName='" + titleName + '\'' +
-                ", actorName='" + actorName + '\'' +
-                '}';
+        this.year = year;
+        Description = description;
+        Rating = rating;
+        Genre = genre;
     }
     public Movies()
     {
 
     }
+
+
 }
