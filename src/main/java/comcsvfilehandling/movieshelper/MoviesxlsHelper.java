@@ -50,8 +50,13 @@ public class MoviesxlsHelper {
                 Row row = sheet.createRow(rowIdx++);
 
                 row.createCell(0).setCellValue(movies1.getId());
-                row.createCell(0).setCellValue(movies1.getTitleName());
-                row.createCell(0).setCellValue(movies1.getActorName());
+                row.createCell(1).setCellValue(movies1.getTitleName());
+                row.createCell(2).setCellValue(movies1.getDirector());
+                row.createCell(3).setCellValue(movies1.getActorName());
+                row.createCell(4).setCellValue(movies1.getDescription());
+                row.createCell(5).setCellValue(movies1.getRating());
+                row.createCell(6).setCellValue(movies1.getRating());
+
             }
             workbook.write(outputStream);
             return new ByteArrayInputStream(outputStream.toByteArray());
@@ -100,9 +105,24 @@ public class MoviesxlsHelper {
                             break;
 
                         case 2:
-                            movies1.setActorName(currentCell.getStringCellValue());
+                            movies1.setDirector(currentCell.getStringCellValue());
                             break;
 
+                        case 3:
+                            movies1.setActorName(currentCell.getStringCellValue());
+                            break;
+                        case 4:
+                            movies1.setYear((int) currentCell.getNumericCellValue());
+                            break;
+                        case 5:
+                            movies1.setDescription(currentCell.getStringCellValue());
+                            break;
+                        case 6:
+                            movies1.setRating( currentCell.getNumericCellValue());
+                            break;
+                        case 7:
+                            movies1.setGenre(currentCell.getStringCellValue());
+                            break;
                         default:
                             break;
                     }

@@ -10,10 +10,8 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.text.DateFormat;
+import java.util.*;
 import java.util.logging.Logger;
 
 import static comcsvfilehandling.movieshelper.MoviesxlsHelper.SHEET;
@@ -43,7 +41,9 @@ public class MoviesCsvHelper {
             Iterable<CSVRecord> csvRecords = csvParser.getRecords();
             logger.info("iterator in csvrecords");
             for (CSVRecord csvRecord : csvRecords) {
-                Movies movies = new Movies(Long.parseLong(csvRecord.get("id")), csvRecord.get("title"), csvRecord.get("actor"));
+                Movies movies = new Movies(Long.parseLong(csvRecord.get("id")), csvRecord.get("title"),
+                        csvRecord.get("director"),csvRecord.get("actor"),Integer.parseInt(csvRecord.get("year")),
+                        csvRecord.get("description"),Double.parseDouble(csvRecord.get("rating")),csvRecord.get("genre"));
                 moviesList.add(movies);
             }
             logger.info("save all movies list in movieslist");

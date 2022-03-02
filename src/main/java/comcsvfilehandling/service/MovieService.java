@@ -28,11 +28,17 @@ public class MovieService {
     }
 
 
-    public ByteArrayInputStream load() {
+    public ByteArrayInputStream loadcsv() {
         List<Movies> movies = repository.findAll();
 
         ByteArrayInputStream in = MoviesCsvHelper.moviesTocsv(movies);
         return in;
+    }
+    public ByteArrayInputStream loadExcel()
+    {
+        List<Movies> movies=repository.findAll();
+        ByteArrayInputStream inputStream=MoviesxlsHelper.movieToExcel(movies);
+        return inputStream;
     }
 
     public List<Movies> getAllMovies() {
@@ -49,5 +55,6 @@ public class MovieService {
             }
 
     }
+
 }
 
