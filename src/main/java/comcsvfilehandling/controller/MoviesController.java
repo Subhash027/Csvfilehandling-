@@ -6,6 +6,9 @@ import comcsvfilehandling.movieshelper.MoviesCsvHelper;
 import comcsvfilehandling.movieshelper.MoviesxlsHelper;
 import comcsvfilehandling.response.ResponseMessage;
 import comcsvfilehandling.service.MovieService;
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +17,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.config.annotation.authentication.configuration.EnableGlobalAuthentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,8 +29,9 @@ import java.util.stream.Collectors;
 import static comcsvfilehandling.stringconstant.StringConstant.*;
 import static org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentContextPath;
 
+
+
 @RestController
-@RequestMapping("/csv")
 public class MoviesController {
     Logger logger= LoggerFactory.getLogger(MoviesController.class);
 
@@ -35,7 +41,9 @@ public class MoviesController {
     MovieService movieService;
 
 
-    @PostMapping(value = "/file/upload", consumes = {"multipart/form-data"})
+
+    @SecurityRequirement(name = "Movies")
+    @PostMapping(value = "/upload", consumes = {"multipart/form-data"})
     public ResponseEntity<ResponseMessage> uploadFile(@RequestParam("file")MultipartFile file)
     {
         String message="";
@@ -81,6 +89,7 @@ public class MoviesController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseMessage(message,fileUri));
 
     }
+    @SecurityRequirement(name = "Movies")
     @GetMapping("/movies")
     public ResponseEntity<List<Movies>> getALLMovies(){
         try {
@@ -94,7 +103,7 @@ public class MoviesController {
             return new ResponseEntity<>(null,HttpStatus.NOT_ACCEPTABLE);
         }
     }
-    @GetMapping("movies/year/{year}")
+    @GetMapping("/movies/year/{year}")
     public List<Movies> getByyear(@PathVariable(value = "year")Integer year)
     {
 
@@ -117,7 +126,8 @@ public class MoviesController {
             throw new RuntimeException("fail to get year"+e.getMessage());
         }
     }
-    @GetMapping("actor/{startwith}")
+    @SecurityRequirement(name = "Movies")
+    @GetMapping("/movies/actor/{startwith}")
     public List<Movies> getByActor(@PathVariable(value = "startwith")String startwith)
     {
         try {
@@ -131,6 +141,7 @@ public class MoviesController {
             throw new RuntimeException("getting some issue");
         }
     }
+    @SecurityRequirement(name = "Movies")
     @GetMapping("downloadfile")
     public ResponseEntity<InputStreamResource> getMovies()
     {
@@ -140,20 +151,6 @@ public class MoviesController {
                 .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
                 .body(File);
     }
-//    @GetMapping("/rating")
-//    public ResponseEntity<List<Movies>> FileDownload()
-//    {
-//        try {
-//            List<Movies> Movierate = movieService.getAllMovies();
-//            //List<Movies> filespec=Moviespec.stream().filter(Year->Year.getYear()>=rating).collect(Collectors.toList());
-//            List<Movies> ratingmovies = Movierate.stream()
-//            return new ResponseEntity<>(ratingmovies, HttpStatus.OK);
-//
-//        }catch (Exception e)
-//        {
-//            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
-//        }
-//    }
 
 
 
