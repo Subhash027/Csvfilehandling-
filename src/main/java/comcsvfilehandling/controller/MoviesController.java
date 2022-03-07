@@ -1,14 +1,16 @@
 package comcsvfilehandling.controller;
 
 import com.google.common.io.Files;
+import comcsvfilehandling.dao.MoviesDAO;
+import comcsvfilehandling.exception.ResponeDetails;
 import comcsvfilehandling.model.Movies;
-import comcsvfilehandling.movieshelper.MoviesCsvHelper;
-import comcsvfilehandling.movieshelper.MoviesxlsHelper;
-import comcsvfilehandling.response.ResponseMessage;
+import comcsvfilehandling.movieshelper.CsvHelper;
+import comcsvfilehandling.movieshelper.ExcelHelper;
 import comcsvfilehandling.service.MovieService;
-import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
+import io.swagger.v3.core.model.ApiDescription;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.security.SecurityScheme;
+import org.apache.poi.ss.usermodel.Header;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,146 +19,125 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.config.annotation.authentication.configuration.EnableGlobalAuthentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
+import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static comcsvfilehandling.stringconstant.StringConstant.*;
+import static comcsvfilehandling.constant.StringConstant.*;
 import static org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentContextPath;
 
 
 
 @RestController
-public class MoviesController {
+public class MoviesController
+{
+    //USING LOG
     Logger logger= LoggerFactory.getLogger(MoviesController.class);
 
-
-
+    @Autowired
+    MoviesDAO moviesDAO;
     @Autowired
     MovieService movieService;
-
-
-
+    /***
+     * UPLOAD CSV AND EXCEL FILE HERE,CONTENT OF FILE IS MOVIES COLLECTION
+     * @param file
+     * @return
+     */
     @SecurityRequirement(name = "Movies")
+    @Operation(summary = "CSV Format and Excel Format File", description = "If you want upload file get token from getauth method")
     @PostMapping(value = "/upload", consumes = {"multipart/form-data"})
-    public ResponseEntity<ResponseMessage> uploadFile(@RequestParam("file")MultipartFile file)
+    public ResponseEntity<ResponeDetails> uploadFile(@RequestParam("file")MultipartFile file)
     {
-        String message="";
-        if(MoviesCsvHelper.formatCheck(file))
+        String details = fromCurrentContextPath().path("/api/csv/download/").path(file.getOriginalFilename()).toUriString();
+        if (CsvHelper.formatCheck(file))
         {
-            try {
-                movieService.saveCsv(file);
-                message=UPLOADED_SUCCESS+file.getOriginalFilename();
-                logger.info(UPLOADED_SUCCESS);
-
-                         String fileUri = fromCurrentContextPath()
-                        .path("/api/csv/download/")
-                        .path(file.getOriginalFilename())
-                        .toUriString();
-
-                         return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(message,fileUri));
-                }catch (Exception e)
-                {
-                logger.info(File_NotUpload);
-                message=File_NotUpload+file.getOriginalFilename()+"!";
-                return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new ResponseMessage(message,""));
-                }
+            movieService.saveCsv(file);
+            logger.info(UPLOADED_SUCCESS);
+            return ResponseEntity.status(HttpStatus.OK).body(new ResponeDetails(LocalDateTime.now(), UPLOADED_SUCCESS + file.getOriginalFilename(), details, HttpStatus.OK));
         }
-        else if(MoviesxlsHelper.excelFormatCheck(file))
+        else if (ExcelHelper.excelFormatCheck(file))
         {
-            try{
-                movieService.saveExcel(file);
-                message=UPLOADED_SUCCESS+file.getOriginalFilename();
-                logger.info(UPLOADED_SUCCESS);
-                return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(message,""));
-               }catch (Exception e)
-              {
-                logger.info(File_NotUpload+e.getMessage());
-                message=File_NotUpload+file.getOriginalFilename();
-                String fileUri= String.valueOf(fromCurrentContextPath().path(file.getOriginalFilename()));
-                return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(new ResponseMessage(message,fileUri));
-              }
+            movieService.saveExcel(file);
+            logger.info(UPLOADED_SUCCESS);
+            return ResponseEntity.status(HttpStatus.OK).body(new ResponeDetails(LocalDateTime.now(),UPLOADED_SUCCESS + file.getOriginalFilename(), "",HttpStatus.OK));
         }
-        logger.warn("upload csv and excel file ");
-        message = SUPPORTED_ONLY;
-        String fileUri;
-        fileUri = "YOUR's -------->"+Files.getFileExtension(file.getOriginalFilename());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResponseMessage(message,fileUri));
-
+        logger.warn("upload csv and excel file");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponeDetails(LocalDateTime.now(),SUPPORTED_ONLY, FILE_FORMATE + Files.getFileExtension(file.getOriginalFilename()),HttpStatus.NOT_IMPLEMENTED));
     }
+    /***
+     * GETTING LIST OF MOVIES COLLECTOIN
+     * @return
+     */
     @SecurityRequirement(name = "Movies")
     @GetMapping("/movies")
-    public ResponseEntity<List<Movies>> getALLMovies(){
-        try {
-            List<Movies> moviesList = movieService.getAllMovies();
-            if (moviesList.isEmpty()) {
-                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-            }
-            return new ResponseEntity<>(moviesList, HttpStatus.OK);
-        }catch (Exception e)
+    @Operation(description = "get token from getauth method to access this method")
+    public ResponseEntity<List<Movies>> getALLMovies()
+    {
+        logger.info("getting all moviesList");
+        List<Movies> moviesList = movieService.getAllMovies();
+        if (moviesList.isEmpty())
         {
-            return new ResponseEntity<>(null,HttpStatus.NOT_ACCEPTABLE);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
+        return new ResponseEntity<>(moviesList, HttpStatus.OK);
     }
-    @GetMapping("/movies/year/{year}")
+    /***
+     * GET BY YEAR OF MOVIES IN MOVIES COLLECTON
+     * @param year
+     * @return
+     */
+    @SecurityRequirement(name = "Movies")
+    @GetMapping(value = "/movies/year/{year}")
+    @Operation(description = "get token from getauth method to access this method")
     public List<Movies> getByyear(@PathVariable(value = "year")Integer year)
     {
-
-        try {
-            logger.info("movies release year" + year);
-            List<Movies> moviesYear = movieService.getAllMovies();
-            List<Movies> getByYear=new ArrayList<>();
-             if (moviesYear.stream().anyMatch(years->years.getYear()>=year))
-            {
-                getByYear= moviesYear.stream()
-                        .filter(years -> years.getYear().equals(year))
-                        .collect(Collectors.toList());
-                logger.info("year of list "+year+""+getByYear);
-                return getByYear;
-            }
-            return (List<Movies>) new ResponseEntity<Movies>(HttpStatus.OK);
-
-        } catch (Exception e) {
-            logger.error("file not found");
-            throw new RuntimeException("fail to get year"+e.getMessage());
-        }
+        logger.info("getting year of movies");
+        return moviesDAO.findBYYear(year);
     }
+    /***
+     * GETTING SPESIFIC LIST OF ACTOR IN MOVIES_COLLECTION
+     * @param startwith
+     * @return
+     */
     @SecurityRequirement(name = "Movies")
     @GetMapping("/movies/actor/{startwith}")
+    @Operation(description = "get token from getauth method to access this method")
     public List<Movies> getByActor(@PathVariable(value = "startwith")String startwith)
     {
-        try {
-            logger.info("sorted by actor name");
-            List<Movies> moviesList = movieService.getAllMovies();
-            List<Movies> actorByName = new ArrayList<>();
-            actorByName= moviesList.stream().filter(Name->Name.getActorName().toLowerCase().startsWith(startwith)).collect(Collectors.toList());
-            return actorByName;
-        }catch(Exception e)
-        {
-            throw new RuntimeException("getting some issue");
-        }
+        return moviesDAO.findByActor(startwith);
     }
+
+    /***
+     * GETTING SPESIFIC LIST OF GENRE IN MOVIES_COLLECTION
+     * @param type
+     * @return
+     */
+    @SecurityRequirement(name = "Movies")
+    @GetMapping("/movies/genre/{type}")
+    @Operation(description = "get token from getauth method to access this method")
+    public List<Movies> getByGenre(@PathVariable(value = "type")String type)
+    {
+        return moviesDAO.findByGenre(type);
+    }
+
+    /***
+     * GETTING  FILE DOCUMENT
+     * @return
+     */
     @SecurityRequirement(name = "Movies")
     @GetMapping("downloadfile")
+    @Operation(description = "get token from getauth method to access this method")
     public ResponseEntity<InputStreamResource> getMovies()
     {
         InputStreamResource File=new InputStreamResource(movieService.loadExcel());
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + " ")
-                .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+                .contentType(MediaType.parseMediaType(MEDIA_TYPE))
                 .body(File);
     }
-
-
-
-
-
-
-
 
 }

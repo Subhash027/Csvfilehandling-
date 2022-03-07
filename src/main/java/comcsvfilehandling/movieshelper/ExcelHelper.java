@@ -8,7 +8,6 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.tomcat.util.http.fileupload.ByteArrayOutputStream;
-import org.hibernate.criterion.Restrictions;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
@@ -18,14 +17,12 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class MoviesxlsHelper {
-    public static String EXCELTYPE="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-    public static String[] excelHeader={"id","title","actor"};
-   static String SHEET="movies1";
+import static comcsvfilehandling.constant.StringConstant.*;
 
+public class ExcelHelper {
     public static boolean excelFormatCheck(MultipartFile file)
     {
-        if(EXCELTYPE.equals(file.getContentType()))
+        if(EXCEL_TYPE.equals(file.getContentType()))
         {
             return true;
         }
@@ -64,7 +61,6 @@ public class MoviesxlsHelper {
             throw new RuntimeException("fail to import to xsl"+e.getMessage());
         }
     }
-
     public static List<Movies> excelToMovies(InputStream inputStream) {
 
             List<Movies> movies=new ArrayList<>();
@@ -82,15 +78,10 @@ public class MoviesxlsHelper {
                 Row currentRow = iterator.next();
 
                 // skip header
-                if (rowNumber == 0) {
-                    rowNumber++;
-                    continue;
-                }
-
+                if (rowNumber == 0) {rowNumber++;continue;}
+                //cell by cell
                 Iterator<Cell> cellsInRow = currentRow.iterator();
-
                 Movies movies1 = new Movies();
-
                 int cellIdx = 0;
                 while (cellsInRow.hasNext()) {
                     Cell currentCell = cellsInRow.next();

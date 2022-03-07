@@ -5,6 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.Value;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Component;
 
 import javax.validation.Valid;
 import java.io.Serializable;
@@ -13,17 +14,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+import static comcsvfilehandling.constant.StringConstant.JWT_TOKEN_VALIDITY;
+
+@Component
 public class Jwtutility implements Serializable {
 
-
-    private static final long serialVersionUID = 234234523523L;
-
-    public static final long JWT_TOKEN_VALIDITY = 1 * 60 * 60;
-
-
-
-
-    private String secretKey="secret";
+    private static final String secretKey="secret";
 
 
     public String getUsernameFromToken(String token) {
@@ -65,7 +61,7 @@ public class Jwtutility implements Serializable {
 
     private String doGenerateToken(Map<String, Object> claims, String subject) {
         return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY * 1000))
+                .setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY ))
                 .signWith(SignatureAlgorithm.HS512, secretKey).compact();
     }
 

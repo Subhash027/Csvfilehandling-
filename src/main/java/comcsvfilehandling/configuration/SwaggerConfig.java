@@ -7,6 +7,9 @@ import io.swagger.v3.oas.models.security.SecurityRequirement;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/***
+ * swagger configuration
+ */
 @Configuration
 public class SwaggerConfig {
     @Bean
@@ -15,7 +18,7 @@ public class SwaggerConfig {
         OpenAPI info;
         info = new OpenAPI()
                 .info(new Info().
-                        title("MOVIESCOLLECTION").version("0.1")
+                        title("MOVIESCOLLECTION(2K Movies Only)").version("0.1")
                         .description("KollyWood-->Movie of Collection").
                         license(new License().name("KollywoodMovies").url("https://www.instagram.com/subhash_doff/")).
                         termsOfService("create and get Movies Only "));
